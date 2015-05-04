@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!-- 从svn更新源代码，并重新编译、打包、部署 -->
+<project name="simplelogin" basedir="." default="package">
+	<property file="build.properties"/>
+	
+	<tstamp> 
+		<format property="current_time" pattern="yyyyMMddhhmm" locale="zh"/>
+	</tstamp>
+	<patternset id="jarsearch">
+		<include name="**/*.jar"/>
+	</patternset>
+	<patternset id="copyref">
+		<include name="**/*.xml"/>
+		<include name="**/*.properties"/>
+	</patternset>
+	
+	<path id="all.classpath">
+		<pathelement path="${outputdir}"/>
+		<fileset dir="${lib}">
+			<patternset refid="jarsearch"/>
+		</fileset>
+		<fileset dir="${j2ee_lib}">
+			<patternset refid="jarsearch"/>
+		</fileset>
+	</path>
+	
+	<!-- 清除旧的编译文件 -->
+	<target name="clean-class">
+		<delete dir="${outputdir}"/>
+		<mkdir dir="${outputdir}"/>
+	</target>
+	
+	<!-- 编译源代码 -->
+	<target name="compile" depends="clean-class">
+		<javac nowarn="true" destdir="${outputdir}">  
+			<src path="${src}"/>
+			<classpath refid="all.classpath"/>
+		</javac>  
+	</target> 
+
+	<!-- 复制配置文件 -->
+	<target name="copy-config-files" depends="compile">
+		<copydir src="${config}" dest="${outputdir}">
+			<patternset refid="jarsearch"/>
+		</copydir>
+	</target> 
+
+	<!-- 生成war包 -->
+	<target name="package" depends="copy-config-files">
+		<war warfile="./${ant.project.name}.war" webxml="${webroot}/WEB-INF/web.xml" excludes="*.svn">
+			<lib dir="${lib}"/>
+			<classes dir = "${outputdir}"/>
+			<fileset dir="${webroot}"/>
+		</war>
+	</target>
+
+</project>
